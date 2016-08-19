@@ -7,6 +7,7 @@ import urwid
 from collections import deque
 from threading import Thread
 import threading
+from time import gmtime, strftime
 
 class UnknownCommand(Exception):
     def __init__(self,cmd):
@@ -66,12 +67,13 @@ class ListView(FocusMixin, urwid.ListBox):
         self.max_size=max_size
         self._lock=threading.Lock()
 
-    def add(self,line):
+    def add(self,line, align='left'):
         with self._lock:
             was_on_end=self.get_focus()[1] == len(self.body)-1
             if self.max_size and len(self.body)>self.max_size:
                 del self.body[0]
-            self.body.append(urwid.Text(line))
+
+            self.body.append(urwid.Text(line, align=align))
             last=len(self.body)-1
             if was_on_end:
                 self.set_focus(last,'above')
@@ -171,10 +173,10 @@ You can also asynchronously output messages with Commander.output('message') """
             else:
                 self.output(line)
 
-    def output(self, line, style=None):
+    def output(self, line, style=None, align='left'):
         if style and style in self._output_styles:
                 line=(style,line)
-        self.body.add(line)
+        self.body.add(line, align=align)
         #since output could be called asynchronously form other threads we need to refresh screen in these cases
         if self.eloop and self._eloop_thread != threading.current_thread():
             self.eloop.draw_screen()
@@ -195,27 +197,3 @@ You can also asynchronously output messages with Commander.output('message') """
         if key=='tab':
             self.switch_focus()
         return urwid.Frame.keypress(self, size, key)
-
-
-if __name__=='__main__':
-    class TestCmd(Command):
-        def do_echo(self, *args):
-            '''echo - Just echos all arguments'''
-            return ' '.join(args)
-        def do_raise(self, *args):
-            raise Exception('Some Error')
-
-    c=Commander('Drogo', cmd_cb=TestCmd())
-
-    #Test asynch output -  e.g. comming from different thread
-    import time
-    def run():
-        while True:
-            time.sleep(1)
-            # c.output('Tick', 'green')
-    t=Thread(target=run)
-    t.daemon=True
-    t.start()
-
-    #start main loop
-    c.loop()
