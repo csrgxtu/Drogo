@@ -166,7 +166,8 @@ You can also asynchronously output messages with Commander.output('message') """
             if res==Commander.Exit:
                 raise urwid.ExitMainLoop()
             elif res:
-                self.output(str(res))
+                # self.output(str(res))
+                self.output(res)
         else:
             if line in ('q','quit','exit'):
                 raise urwid.ExitMainLoop()
