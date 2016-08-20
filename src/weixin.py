@@ -788,7 +788,7 @@ class WebWeixin(object):
                 # raw_msg = {'raw_msg': msg, 'message': '%s 撤回了一条消息' % name}
                 # self._showMsg(raw_msg)
             else:
-                UIObject.output(name + ': [unknow msg type]', 'blue')
+                UIObject.output(name + ': [表情　图片　链接　红包]', 'blue')
                 # logging.debug('[*] 该消息类型为: %d，可能是表情，图片, 链接或红包: %s' %
                 #               (msg['MsgType'], json.dumps(msg)))
                 # raw_msg = {
@@ -832,7 +832,7 @@ class WebWeixin(object):
                     r = self.webwxsync()
                 elif selector == '0':
                     time.sleep(1)
-            if (time.time() - self.lastCheckTs) <= 20:
+            if (time.time() - self.lastCheckTs) <= 3:
                 time.sleep(time.time() - self.lastCheckTs)
 
     def sendMsg(self, name, word, isfile=False):
