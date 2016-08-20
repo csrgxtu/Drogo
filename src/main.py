@@ -14,8 +14,6 @@ if __name__=='__main__':
     import coloredlogs
     # coloredlogs.install(level='DEBUG')
 
-    webwx = WebWeixin()
-    webwx.start()
 
     class TestCmd(Command):
         def do_echo(self, *args):
@@ -31,20 +29,20 @@ if __name__=='__main__':
         def do_receivemsg(self, *args):
             return args[0] + ': ' + ' '.join(args[1:])
 
-        # def do_leave(self, *args):
-        #     webwx.quit()
-
     c=Commander('Drogo', cmd_cb=TestCmd())
 
     #Test asynch output -  e.g. comming from different thread
     # import time
-    # def run():
-    #     while True:
+    webwx = WebWeixin(c)
+    webwx.start()
+    def run():
+        webwx.listenMsgMode(c)
+        # while True:
     #         time.sleep(3)
     #         # c.output('I am Khal Drogo:ME', 'green', 'right')
-    # t=Thread(target=run)
-    # t.daemon=True
-    # t.start()
+    t=Thread(target=run)
+    t.daemon=True
+    t.start()
 
     #start main loop
     c.loop()

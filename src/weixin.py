@@ -64,6 +64,7 @@ def _decode_dict(data):
 
 class WebWeixin(object):
     ListenProcess = None
+    UIObject = None
 
     def __str__(self):
         description = \
@@ -79,7 +80,8 @@ class WebWeixin(object):
             "========================="
         return description
 
-    def __init__(self):
+    def __init__(self, UIObject):
+        self.UIObject = UIObject
         self.DEBUG = False
         self.uuid = ''
         self.base_uri = ''
@@ -688,7 +690,7 @@ class WebWeixin(object):
             logging.info('%s %s -> %s: %s' % (message_id, srcName.strip(),
                                               dstName.strip(), content.replace('<br/>', '\n')))
 
-    def handleMsg(self, r):
+    def handleMsg(self, r, UIObject):
         for msg in r['AddMsgList']:
             # print '[*] 你有新的消息，请注意查收'
             logging.debug('[*] 你有新的消息，请注意查收')
@@ -706,30 +708,34 @@ class WebWeixin(object):
             msgid = msg['MsgId']
 
             if msgType == 1:
-                raw_msg = {'raw_msg': msg}
-                self._showMsg(raw_msg)
-                if self.autoReplyMode:
-                    ans = self._xiaodoubi(content) + '\n[微信机器人自动回复]'
-                    if self.webwxsendmsg(ans, msg['FromUserName']):
-                        # print '自动回复: ' + ans
-                        logging.info('自动回复: ' + ans)
-                    else:
-                        # print '自动回复失败'
-                        logging.info('自动回复失败')
+                # raw_msg = {'raw_msg': msg}
+                # self._showMsg(raw_msg)
+                UIObject.output(name + ': ' + content, 'green')
+                # if self.autoReplyMode:
+                #     ans = self._xiaodoubi(content) + '\n[微信机器人自动回复]'
+                #     if self.webwxsendmsg(ans, msg['FromUserName']):
+                #         # print '自动回复: ' + ans
+                #         logging.info('自动回复: ' + ans)
+                #     else:
+                #         # print '自动回复失败'
+                #         logging.info('自动回复失败')
             elif msgType == 3:
-                image = self.webwxgetmsgimg(msgid)
-                raw_msg = {'raw_msg': msg,
-                           'message': '%s 发送了一张图片: %s' % (name, image)}
-                self._showMsg(raw_msg)
-                self._safe_open(image)
+                UIObject.output(name + ': [picture]', 'blue')
+                # image = self.webwxgetmsgimg(msgid)
+                # raw_msg = {'raw_msg': msg,
+                #            'message': '%s 发送了一张图片: %s' % (name, image)}
+                # self._showMsg(raw_msg)
+                # self._safe_open(image)
             elif msgType == 34:
-                voice = self.webwxgetvoice(msgid)
-                raw_msg = {'raw_msg': msg,
-                           'message': '%s 发了一段语音: %s' % (name, voice)}
-                self._showMsg(raw_msg)
-                self._safe_open(voice)
+                UIObject.output(name + ': [voice]', 'blue')
+                # voice = self.webwxgetvoice(msgid)
+                # raw_msg = {'raw_msg': msg,
+                #            'message': '%s 发了一段语音: %s' % (name, voice)}
+                # self._showMsg(raw_msg)
+                # self._safe_open(voice)
             elif msgType == 42:
-                info = msg['RecommendInfo']
+                UIObject.output(name + ': [contact card]', 'blue')
+                # info = msg['RecommendInfo']
                 # print '%s 发送了一张名片:' % name
                 # print '========================='
                 # print '= 昵称: %s' % info['NickName']
@@ -737,18 +743,20 @@ class WebWeixin(object):
                 # print '= 地区: %s %s' % (info['Province'], info['City'])
                 # print '= 性别: %s' % ['未知', '男', '女'][info['Sex']]
                 # print '========================='
-                raw_msg = {'raw_msg': msg, 'message': '%s 发送了一张名片: %s' % (
-                    name.strip(), json.dumps(info))}
-                self._showMsg(raw_msg)
+                # raw_msg = {'raw_msg': msg, 'message': '%s 发送了一张名片: %s' % (
+                #     name.strip(), json.dumps(info))}
+                # self._showMsg(raw_msg)
             elif msgType == 47:
-                url = self._searchContent('cdnurl', content)
-                raw_msg = {'raw_msg': msg,
-                           'message': '%s 发了一个动画表情，点击下面链接查看: %s' % (name, url)}
-                self._showMsg(raw_msg)
-                self._safe_open(url)
+                UIObject.output(name + ': [animation]', 'blue')
+                # url = self._searchContent('cdnurl', content)
+                # raw_msg = {'raw_msg': msg,
+                #            'message': '%s 发了一个动画表情，点击下面链接查看: %s' % (name, url)}
+                # self._showMsg(raw_msg)
+                # self._safe_open(url)
             elif msgType == 49:
-                appMsgType = defaultdict(lambda: "")
-                appMsgType.update({5: '链接', 3: '音乐', 7: '微博'})
+                UIObject.output(name + ': [link music weibo]', 'blue')
+                # appMsgType = defaultdict(lambda: "")
+                # appMsgType.update({5: '链接', 3: '音乐', 7: '微博'})
                 # print '%s 分享了一个%s:' % (name, appMsgType[msg['AppMsgType']])
                 # print '========================='
                 # print '= 标题: %s' % msg['FileName']
@@ -756,36 +764,39 @@ class WebWeixin(object):
                 # print '= 链接: %s' % msg['Url']
                 # print '= 来自: %s' % self._searchContent('appname', content, 'xml')
                 # print '========================='
-                card = {
-                    'title': msg['FileName'],
-                    'description': self._searchContent('des', content, 'xml'),
-                    'url': msg['Url'],
-                    'appname': self._searchContent('appname', content, 'xml')
-                }
-                raw_msg = {'raw_msg': msg, 'message': '%s 分享了一个%s: %s' % (
-                    name, appMsgType[msg['AppMsgType']], json.dumps(card))}
-                self._showMsg(raw_msg)
+                # card = {
+                #     'title': msg['FileName'],
+                #     'description': self._searchContent('des', content, 'xml'),
+                #     'url': msg['Url'],
+                #     'appname': self._searchContent('appname', content, 'xml')
+                # }
+                # raw_msg = {'raw_msg': msg, 'message': '%s 分享了一个%s: %s' % (
+                #     name, appMsgType[msg['AppMsgType']], json.dumps(card))}
+                # self._showMsg(raw_msg)
             elif msgType == 51:
                 raw_msg = {'raw_msg': msg, 'message': '[*] 成功获取联系人信息'}
-                self._showMsg(raw_msg)
+                # self._showMsg(raw_msg)
             elif msgType == 62:
-                video = self.webwxgetvideo(msgid)
-                raw_msg = {'raw_msg': msg,
-                           'message': '%s 发了一段小视频: %s' % (name, video)}
-                self._showMsg(raw_msg)
-                self._safe_open(video)
+                UIObject.output(name + ': [video]', 'blue')
+                # video = self.webwxgetvideo(msgid)
+                # raw_msg = {'raw_msg': msg,
+                #            'message': '%s 发了一段小视频: %s' % (name, video)}
+                # self._showMsg(raw_msg)
+                # self._safe_open(video)
             elif msgType == 10002:
-                raw_msg = {'raw_msg': msg, 'message': '%s 撤回了一条消息' % name}
-                self._showMsg(raw_msg)
+                UIObject.output(name + ': [msg recalled]', 'blue')
+                # raw_msg = {'raw_msg': msg, 'message': '%s 撤回了一条消息' % name}
+                # self._showMsg(raw_msg)
             else:
-                logging.debug('[*] 该消息类型为: %d，可能是表情，图片, 链接或红包: %s' %
-                              (msg['MsgType'], json.dumps(msg)))
-                raw_msg = {
-                    'raw_msg': msg, 'message': '[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
-                self._showMsg(raw_msg)
+                UIObject.output(name + ': [unknow msg type]', 'blue')
+                # logging.debug('[*] 该消息类型为: %d，可能是表情，图片, 链接或红包: %s' %
+                #               (msg['MsgType'], json.dumps(msg)))
+                # raw_msg = {
+                #     'raw_msg': msg, 'message': '[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
+                # self._showMsg(raw_msg)
 
-    def listenMsgMode(self):
-        print '[*] 进入消息监听模式 ... 成功'
+    def listenMsgMode(self, UIObject):
+        # print '[*] 进入消息监听模式 ... 成功'
         logging.debug('[*] 进入消息监听模式 ... 成功')
         self._run('[*] 进行同步线路测试 ... ', self.testsynccheck)
         playWeChat = 0
@@ -808,7 +819,7 @@ class WebWeixin(object):
                 if selector == '2':
                     r = self.webwxsync()
                     if r is not None:
-                        self.handleMsg(r)
+                        self.handleMsg(r, UIObject)
                 elif selector == '6':
                     # TODO
                     redEnvelope += 1
@@ -950,8 +961,10 @@ class WebWeixin(object):
             print '[*] 自动回复模式 ... 关闭'
             logging.debug('[*] 自动回复模式 ... 关闭')
 
-        self.ListenProcess = multiprocessing.Process(target=self.listenMsgMode)
-        self.ListenProcess.start()
+        # self.UIObject.output('before entering the subprocess')
+        # self.ListenProcess = multiprocessing.Process(target=self.listenMsgMode, args=(self.UIObject,))
+        # self.ListenProcess.start()
+        # self.listenMsgMode(self.UIObject)
 
         # while True:
         #     text = raw_input('')
@@ -1002,10 +1015,10 @@ class WebWeixin(object):
     def _run(self, str, func, *args):
         self._echo(str)
         if func(*args):
-            print '成功'
+            # print '成功'
             logging.debug('%s... 成功' % (str))
         else:
-            print('失败\n[*] 退出程序')
+            # print('失败\n[*] 退出程序')
             logging.debug('%s... 失败' % (str))
             logging.debug('[*] 退出程序')
             exit()
