@@ -16,6 +16,12 @@ def GetNickName(Contacts, number):
 
     return None
 
+def GetNickNameAndMsgType(Contacts, number):
+    for contact in Contacts:
+        if contact[0] == number:
+            return contact[1]
+    return None
+
 def GetNumber(Contacts, nickname):
     for contact in Contacts:
         if contact[1].encode == nickname:
@@ -32,11 +38,11 @@ if __name__=='__main__':
     Discusses = bot.discuss
     Contacts = []
     for buddy in Buddies:
-        Contacts.append(buddy)
+        Contacts.append(list(buddy))
     for group in Groupes:
-        Contacts.append(group)
+        Contacts.append(list(group))
     for discuss in Discusses:
-        Contacts.append(discuss)
+        Contacts.append(list(discuss))
 
     class TestCmd(Command):
         def do_echo(self, *args):
@@ -97,36 +103,34 @@ if __name__=='__main__':
             number = GetNumber(Contacts, args[0].encode('utf-8'))
             return number
 
+        def do_sendaliasmsg(self, *args):
+            msgType = args[0]
+            target = args[1]
+
+            try:
+                alias = pickle.load(open('alias.pkl', 'rb'))
+            except:
+                alias = []
+
+            for alia in alias:
+                if alia[1] == target:
+                    number = int(alia[0])
+                    nickname = target
+                    bot.send(msgType, number, ' '.join(args[2:]))
+
+                    return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
+
+            return 'Cant find alias: ' + target
+
         def do_sendmsg(self, *args):
             msgType = args[0]
 
             # 解析发送地址, 根据参数得到qqId.
             target = args[1]
-            try:
-                number = int(target)
-                nickname = GetNickName(Contacts, number)
-                bot.send(msgType, number, ' '.join(args[2:]))
-                return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
-            except:
-                try:
-                    alias = pickle.load(open('alias.pkl', 'rb'))
-                except:
-                    alias = []
-
-                for alia in alias:
-                    if alia[1] == target:
-                        number = int(alia[0])
-                        nickname = target
-                        bot.send(msgType, number, ' '.join(args[2:]))
-                        return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
-
-                return 'Cant find alias: ' + target        
-
-            # number = int(args[1])
-            # nickname = GetNickName(Contacts, number)
-            #
-            # bot.send(msgType, number, ' '.join(args[2:]))
-            # return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
+            number = int(target)
+            nickname = GetNickName(Contacts, number)
+            bot.send(msgType, number, ' '.join(args[2:]))
+            return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
 
     c=Commander('Drogo', cmd_cb=TestCmd())
 
