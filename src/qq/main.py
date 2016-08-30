@@ -19,7 +19,7 @@ def GetNickName(Contacts, number):
 def GetNickNameAndMsgType(Contacts, number):
     for contact in Contacts:
         if contact[0] == number:
-            return contact[1]
+            return contact[1], contact[2]
     return None
 
 def GetNumber(Contacts, nickname):
@@ -38,11 +38,17 @@ if __name__=='__main__':
     Discusses = bot.discuss
     Contacts = []
     for buddy in Buddies:
-        Contacts.append(list(buddy))
+        tmpBuddy = list(buddy)
+        tmpBuddy.append('buddy')
+        Contacts.append(tmpBuddy)
     for group in Groupes:
-        Contacts.append(list(group))
+        tmpGroup = list(group)
+        tmpGroup.append('group')
+        Contacts.append(tmpGroup)
     for discuss in Discusses:
-        Contacts.append(list(discuss))
+        tmpDiscuss = list(discuss)
+        tmpDiscuss.append('discuss')
+        Contacts.append(tmpDiscuss)
 
     class TestCmd(Command):
         def do_echo(self, *args):
@@ -104,8 +110,7 @@ if __name__=='__main__':
             return number
 
         def do_sendaliasmsg(self, *args):
-            msgType = args[0]
-            target = args[1]
+            target = args[0]
 
             try:
                 alias = pickle.load(open('alias.pkl', 'rb'))
@@ -115,20 +120,18 @@ if __name__=='__main__':
             for alia in alias:
                 if alia[1] == target:
                     number = int(alia[0])
-                    nickname = target
-                    bot.send(msgType, number, ' '.join(args[2:]))
+                    nickname, msgType = GetNickNameAndMsgType(Contacts, number)
+                    bot.send(msgType, number, ' '.join(args[1:]))
 
-                    return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
+                    return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[1:])
 
             return 'Cant find alias: ' + target
 
         def do_sendmsg(self, *args):
-            msgType = args[0]
-
             # 解析发送地址, 根据参数得到qqId.
-            target = args[1]
+            target = args[0]
             number = int(target)
-            nickname = GetNickName(Contacts, number)
+            nickname, msgType = GetNickNameAndMsgType(Contacts, number)
             bot.send(msgType, number, ' '.join(args[2:]))
             return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
 
