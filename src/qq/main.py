@@ -52,6 +52,11 @@ if __name__=='__main__':
             elif args[0] == 'discuss':
                 return bot.discussStr.replace('?', '')
 
+        def do_alias(self, *args):
+            qqId = args[0]
+            nickname = args[1]
+            return nickname + '(' + qqId + ')'
+
         def do_number(self, *args):
             nickname = args[0]
             number = GetNumber(Contacts, args[0].encode('utf-8'))
