@@ -7,6 +7,7 @@
 # Date: 20/Aug/2016
 from qqbot import QQBot
 from UI import *
+import pickle
 
 def GetNickName(Contacts, number):
     for contact in Contacts:
@@ -53,9 +54,43 @@ if __name__=='__main__':
                 return bot.discussStr.replace('?', '')
 
         def do_alias(self, *args):
+            # first, load the previous alias
+            try:
+                alias = pickle.load(open('alias.pkl', 'rb'))
+            except:
+                alias = []
+
+            # insert the current alias into the previous
             qqId = args[0]
             nickname = args[1]
-            return nickname + '(' + qqId + ')'
+
+            existFlag = False
+            for alia in alias:
+                if alia[0] == qqId:
+                    existFlag = True
+                    alia[1] = nickname
+                    break
+
+            if not existFlag:
+                alias.append([qqId, nickname])
+
+            output = open('alias.pkl', 'wb')
+            pickle.dump(alias, output)
+            output.close()
+
+            return 'Set alias: ' + nickname + '(' + qqId + ')'
+
+        def do_listalias(self, *args):
+            try:
+                alias = pickle.load(open('alias.pkl', 'rb'))
+            except:
+                alias = []
+
+            outputStr = ''
+            for alia in alias:
+                outputStr += alia[1] + ' : ' + alia[0] + '\n'
+
+            return outputStr
 
         def do_number(self, *args):
             nickname = args[0]
