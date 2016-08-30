@@ -99,11 +99,34 @@ if __name__=='__main__':
 
         def do_sendmsg(self, *args):
             msgType = args[0]
-            number = int(args[1])
-            nickname = GetNickName(Contacts, number)
 
-            bot.send(msgType, number, ' '.join(args[2:]))
-            return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
+            # 解析发送地址, 根据参数得到qqId.
+            target = args[1]
+            try:
+                number = int(target)
+                nickname = GetNickName(Contacts, number)
+                bot.send(msgType, number, ' '.join(args[2:]))
+                return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
+            except:
+                try:
+                    alias = pickle.load(open('alias.pkl', 'rb'))
+                except:
+                    alias = []
+
+                for alia in alias:
+                    if alia[1] == target:
+                        number = int(alia[0])
+                        nickname = target
+                        bot.send(msgType, number, ' '.join(args[2:]))
+                        return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
+
+                return 'Cant find alias: ' + target        
+
+            # number = int(args[1])
+            # nickname = GetNickName(Contacts, number)
+            #
+            # bot.send(msgType, number, ' '.join(args[2:]))
+            # return '->' + nickname.decode('utf-8') + '(' + str(number) + '): ' + ' '.join(args[2:])
 
     c=Commander('Drogo', cmd_cb=TestCmd())
 
