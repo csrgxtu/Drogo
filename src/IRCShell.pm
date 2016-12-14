@@ -38,28 +38,29 @@ sub call{
                 $raw_content = $content;
             }
             if($user->user ne $master_irc_user and !$user->is_localhost){
-                $content = $user->nick . ": $content"; 
-                #$content .= " (来自 ".$user->nick.")"; 
+                $content = $user->nick . ": $content";
+                #$content .= " (来自 ".$user->nick.")";
             }
             # 向群组里面发送图片命令解析 sendFile /tmp/dog.png
             if ($content =~ m/^sendFile /) {
                 my @commands = split ' ', $content;
                 $group->send_media($commands[1]);
+            } else {
+              $group->send($content,sub{
+                 $_[1]->from("irc");
+                 $_[1]->cb(sub{
+                     my($client,$msg,$status)=@_;
+                     if($status->is_success){
+                         if($msg->content ne $raw_content){
+                             $msg->content($raw_content);
+                         }
+                     }
+                     else{
+                         $user->send($user->ident,"PRIVMSG",$channel_name,$content . "[发送失败]");
+                     }
+                 });
+              });
             }
-            #$group->send($content,sub{
-            #    $_[1]->from("irc");
-            #    $_[1]->cb(sub{
-            #        my($client,$msg,$status)=@_;
-            #        if($status->is_success){
-            #            if($msg->content ne $raw_content){
-            #                $msg->content($raw_content);
-            #            }
-            #        }
-            #        else{
-            #            $user->send($user->ident,"PRIVMSG",$channel_name,$content . "[发送失败]");
-            #        }
-            #    });
-            #});
         }
         elsif($user->user eq $master_irc_user or $user->is_localhost){
             my $nick =  $msg->{params}[0];
@@ -72,21 +73,22 @@ sub call{
                 if ($content =~ m/^sendFile /) {
                   my @commands = split ' ', $content;
                   $friend->send_media($commands[1]);
+                } else {
+                  $friend->send($content,sub{
+                     $_[1]->from("irc");
+                     $_[1]->cb(sub{
+                  my($client,$msg,$status)=@_;
+                  return if $status->is_success;
+                  $user->send($user->ident,"PRIVMSG",$nick,$content . "[发送失败]");
+                     });
+                  });
                 }
 
-                #$friend->send($content,sub{
-                #    $_[1]->from("irc");
-                #    $_[1]->cb(sub{
-                       #my($client,$msg,$status)=@_;
-                       #return if $status->is_success;
-                       #$user->send($user->ident,"PRIVMSG",$nick,$content . "[发送失败]");
-                #    });
-                #});
             }
             else{
                 $user->send($user->ident,"PRIVMSG",$nick,$content . "[发送失败]");
                 $user->send($user->ident,"PRIVMSG",$nick,"你和 [$nick] 并非好友关系");
-            } 
+            }
         }
     });
 
@@ -186,7 +188,7 @@ sub call{
                     nick    =>$member->displayname,
                     virtual => 1,
                 );
-                
+
                 $user->join_channel($channel);
             }
             elsif($user->is_virtual){
@@ -218,7 +220,7 @@ sub call{
                 }
             }
         }
-    
+
     });
     $client->on(send_message=>sub{
         my($client,$msg) = @_;
@@ -249,7 +251,7 @@ sub call{
             }) if defined $image_api and $msg->format eq 'media';
 
             for(
-                grep {$_->user eq $master_irc_user or $_->is_localhost} 
+                grep {$_->user eq $master_irc_user or $_->is_localhost}
                 grep {!$_->is_virtual} $ircd->users
             )
             {
@@ -293,7 +295,7 @@ sub call{
             $user->set_nick($object->displayname) if $object->displayname ne $user->nick;
         }
         elsif($object->is_group_member){
-            return if $property ne "nick" and $property ne "card"; 
+            return if $property ne "nick" and $property ne "card";
             my $user = $ircd->search_user(id=>$object->id,virtual=>1);
             return unless defined $user;
             $user->set_nick($object->displayname) if $object->displayname ne $user->nick;
