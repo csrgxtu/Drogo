@@ -4,6 +4,8 @@
 * 图片发送与接收(好友，群组)
 * 支持关注公众号的事件通知
 
+![demo gif](https://github.com/csrgxtu/Drogo/blob/master/img/output.gif)  
+
 ### 如何使用
 1, 安装Perl的包管理工具
 ```bash
