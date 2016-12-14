@@ -40,7 +40,7 @@ irssi -c 127.0.0.1 -p 6667
 ```bash
 /nick Archer #设置昵称为你的微信昵称
 /list -YES # 列出当前的群组, 其中好友在群组 #我的好友中
-/j \#我的好友 # 进入一个群组
+/j #我的好友 # 进入一个群组
 /msg JohnTian hey, man # 发送一个消息到好友
 Alt^Left|Right # 使用组合键切换窗口到好友对话窗
 sendFile /tmp/dog.png # 使用sendFile发送一个文件给好友
