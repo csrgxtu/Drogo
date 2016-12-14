@@ -6,6 +6,10 @@
 
 ![demo gif](https://github.com/csrgxtu/Drogo/blob/master/img/output.gif)  
 
+命令行             |  手机
+:-------------------------:|:-------------------------:
+![command line](https://github.com/csrgxtu/Drogo/blob/master/img/demo.png)  |  ![phone](https://github.com/csrgxtu/Drogo/blob/master/img/mojo_weixin_media_Ujfo.jpg)
+
 ### 如何使用
 1, 安装Perl的包管理工具
 ```bash
