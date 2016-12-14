@@ -84,8 +84,7 @@ sub call{
                   });
                 }
 
-            }
-            else{
+            } else {
                 $user->send($user->ident,"PRIVMSG",$nick,$content . "[发送失败]");
                 $user->send($user->ident,"PRIVMSG",$nick,"你和 [$nick] 并非好友关系");
             }
