@@ -73,6 +73,14 @@ sub call{
                 if ($content =~ m/^sendFile /) {
                   my @commands = split ' ', $content;
                   $friend->send_media($commands[1]);
+                } elsif ($content =~ m/^sendMp4 /) {
+                  my @commands = split ' ', $content;
+                  $friend->send_media({
+                    media_path => $commands[1],
+                    #media_mime => 'video/mpeg',
+                    media_mtime => 1457169652 ,
+                    media_ext  => 'mp4'
+                  });
                 } else {
                   $friend->send($content,sub{
                      $_[1]->from("irc");
